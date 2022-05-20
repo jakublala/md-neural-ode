@@ -1,0 +1,5 @@
+results/
+temp/
+__pychache__/
+dataset/
+*.out
