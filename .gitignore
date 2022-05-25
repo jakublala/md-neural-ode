@@ -1,5 +1,6 @@
 results/
 temp/
 __pychache__/
+diffmd/__pychache__
 dataset/
 *.out
