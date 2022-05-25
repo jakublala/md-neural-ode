@@ -157,7 +157,7 @@ def run(potential):
     num_samples = [100, 200, 500, 1000, 2000, 5000, 10000]
     init = np.random.randn(2)*2
     traj_length = 10
-    traj_step_size = 0.01
+    traj_step_size = 0.1
     num_of_runs = 25
 
     for q in num_samples:
@@ -174,6 +174,11 @@ def run(potential):
             with open(f'results/{potential}/hmc/{q}/{i}_info.npy', 'wb') as f:
                 np.save(f, np.array([time.perf_counter() - start, acceptance]))
 
+            # just save the last one to get trajectories
+            if i == (num_of_runs) and q == num_samples[-1]:
+                with open(f'dataset/{potential}_test.npy', 'wb') as f:
+                    np.save(f, trajs)
+
 if __name__ == '__main__':
-    for potential in ['2d_shell', '10d_gaussian', 'wofe_quapp']:
+    for potential in ['wofe_quapp','10d_gaussian']:#['2d_shell', '10d_gaussian', 'wofe_quapp']:
         run(potential)

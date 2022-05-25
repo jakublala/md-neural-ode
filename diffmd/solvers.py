@@ -42,7 +42,22 @@ class VelVerlet_NVE(FixedGridODESolver):
             # print('vstepfull', v_step_full)
             # print('qstepfull', q_step_full)
             return tuple((v_step_full, q_step_full))
-        
+        elif len(state) == NUM_VAR + 1: # integrator in the forward call (with Jacobian integration)
+            # print('===INSIDE DIFFMD===')
+            dvdt_0, dqdt_0, dJdt_0 = diffeq(state)
+
+            v_step_half = 1/2 * dvdt_0 * dt 
+ 
+            # explicitly defined change in q
+            q_step_full = (state[0] + v_step_half) * dt 
+            J_step_full = 1/2 * dJdt_0 * dt
+            
+            # gradient full at t + dt 
+            dvdt_full, dqdt_half = diffeq((state[0] + v_step_half, state[1] + q_step_full, state[3] + J_step_full))
+ 
+            v_step_full = v_step_half + 1/2 * dvdt_full * dt
+     
+            return tuple((v_step_full, q_step_full, J_step_full))
         elif len(state) == NUM_VAR * 2 + 1: # integrator in the backward call 
             # diffeq is the automatically generated ODE for adjoints (returns more than the original forward ODE)
             dvdt_0, dqdt_0, v_adj_0, q_adj_0, dLdpar_0  = diffeq(state) 

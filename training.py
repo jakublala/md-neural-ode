@@ -10,8 +10,8 @@ import os
 import shutil
 import csv
 
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = 'cpu'
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = 'cpu'
 print(f'Using {device} device')
 
 class RunningAverageMeter(object):
@@ -177,15 +177,15 @@ def train_model(niters, training_trajs, dt, sample_length, batch_size, learning_
         optimizer.step()
         loss_meter.update(loss.item())
         
-        if itr % 10 == 0: # output log throughout
+        if itr % 500 == 0: # output log throughout
             print('Iter: {}, running avg elbo: {:.4f}'.format(itr, loss_meter.avg))
             print('current loss: {:.4f}'.format(loss_meter.val))
             print('Last iteration took: ', time.perf_counter() - start)
 
-        if itr % 100 == 0: # do a validation step across entire trajectory
+        if itr % 1000 == 0: # do a validation step across entire trajectory
             for i in range(2):
-                plt.plot(pred_y[:,i,1].detach().numpy(),pred_y[:,i,0].detach().numpy(),color='blue',alpha=0.5)
-                plt.plot(batch_y[:,i,1].detach().numpy(),batch_y[:,i,0].detach().numpy(),color='red',alpha=0.5)
+                plt.plot(pred_y[:,i,1].detach().cpu().numpy(),pred_y[:,i,0].detach().cpu().numpy(),color='blue',alpha=0.5)
+                plt.plot(batch_y[:,i,1].detach().cpu().numpy(),batch_y[:,i,0].detach().cpu().numpy(),color='red',alpha=0.5)
             plt.savefig('temp/{0}.png'.format(itr))
             plt.close()
 
@@ -198,26 +198,32 @@ def train_model(niters, training_trajs, dt, sample_length, batch_size, learning_
 def main():
     sample_length=20
     batch_size=800
-    learning_rate=0.2
+    learning_rate=0.025
     scheduling_factor=0.6
-    scheduling_freq=1000
+    scheduling_freq=2000
     nn_depth=2
     nn_width=50
-    niters = 10000
-    dt = 0.01
-    train_split = 1.0
-    potential = '2d_shell'
-    num_models = 5
-    for i in range(1, 1+num_models):
-        training_trajs, testing_trajs = get_data(potential, train_split)
-        model, loss_meter = train_model(niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width)
-
-        # save model
-        torch.save(model, f'results/{potential}/{i}_model.pt')
-        with open(f'results/{potential}/{i}_loss.txt', 'w') as f:
-            for loss in loss_meter.losses:
-                f.write(f'{loss}\n')
+    niters = 20000
     
+    train_split = 1.0
+    potentials = ['wofe_quapp']
+    num_models = 5
+    for potential in potentials:
+        if potential == '2d_shell':
+            dt = 0.01
+        else:
+            dt = 0.1
+
+        for i in range(1, 1+num_models):
+            training_trajs, testing_trajs = get_data(potential, train_split)
+            model, loss_meter = train_model(niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width)
+
+            # save model
+            torch.save(model, f'results/{potential}/{i}_model.pt')
+            with open(f'results/{potential}/{i}_loss.txt', 'w') as f:
+                for loss in loss_meter.losses:
+                    f.write(f'{loss}\n')
+        
 
 if __name__ == '__main__':
     main()

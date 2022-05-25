@@ -39,11 +39,14 @@ def evaluate_model(sample_length, batch_size, learning_rate, nn_depth, nn_width,
     dt = 0.1
     t0 = time.perf_counter()
 
-    training_trajs, testing_trajs = get_data('10d_gaussian', 0.95)
+    training_trajs, testing_trajs = get_data('wofe_quapp', 1.0)
     model, train_loss = train_model(niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width)
     training_time = time.perf_counter() - t0
 
-    test_loss = test_model(model, testing_trajs, dt)
+    try:
+        test_loss = test_model(model, testing_trajs, dt)
+    except:
+        test_loss = None
 
     training_and_testing_time = time.perf_counter() - t0
     
@@ -80,20 +83,20 @@ def run_and_track_in_sigopt():
     nn_depth=2,
     nn_width=50,
     activation_function=None,
-    scheduling_factor=sigopt.params.scheduling_factor,
-    scheduling_freq=sigopt.params.scheduling_freq,
+    scheduling_factor=1000,
+    scheduling_freq=0.6,
     )
 
-    sigopt.log_model('10D Gaussian')
+    sigopt.log_model('Wolfe Quapp')
     
     
     train_loss, test_loss, training_time, training_and_validation_time = evaluate_model(**args)
 
     running_avg_train_loss = train_loss.avg
-    running_avg_test_loss = test_loss.avg
-
+    # running_avg_test_loss = test_loss.avg
+    
     sigopt.log_metric(name="train_loss", value=running_avg_train_loss)
-    sigopt.log_metric(name="test_loss", value=running_avg_test_loss)
+    # sigopt.log_metric(name="test_loss", value=running_avg_test_loss)
     sigopt.log_metric(name="training time (s)", value=training_time)
     sigopt.log_metric(name="training and validation time (s)", value=training_and_validation_time)
 
