@@ -153,17 +153,20 @@ def hmc(func, q0, num_samples, eps, steps, store=False):
         
     return samples,stored_vals,energies,acceptance
 
-def run(potential):
-    num_samples = [100, 200, 500, 1000, 2000, 5000, 10000]
+def run(potential, potential_fce):
+    num_samples = [5000]
     init = np.random.randn(2)*2
-    traj_length = 10
-    traj_step_size = 0.1
-    num_of_runs = 25
+    traj_length = 100
+    if potential == '2d_shell':
+        traj_step_size = 0.01
+    else:
+        traj_step_size = 0.1
+    num_of_runs = 1
 
     for q in num_samples:
         for i in range(1, num_of_runs+1):
             start = time.perf_counter()
-            samps,trajs,energies,acceptance = hmc(Shell2D, init, q, traj_step_size, traj_length, store=True)
+            samps,trajs,energies,acceptance = hmc(potential_fce, init, q, traj_step_size, traj_length, store=True)
 
             if not os.path.exists(f'results/{potential}/hmc/{q}'):
                 os.makedirs(f'results/{potential}/hmc/{q}')
@@ -180,5 +183,12 @@ def run(potential):
                     np.save(f, trajs)
 
 if __name__ == '__main__':
-    for potential in ['wofe_quapp','10d_gaussian']:#['2d_shell', '10d_gaussian', 'wofe_quapp']:
-        run(potential)
+    for potential in ['wofe_quapp','10d_gaussian', '2d_shell']:
+        if potential == 'wofe_quapp':
+            potential_fce = Wofe_Quapp
+        elif potential == '10d_gaussian':
+            potential_fce = GaussianXD
+        else:
+            potential_fce = Shell2D
+
+        run(potential, potential_fce) 

@@ -10,7 +10,7 @@ import os
 import shutil
 import csv
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 # device = 'cpu'
 print(f'Using {device} device')
 
@@ -131,7 +131,9 @@ class ODEFunc(nn.Module):
 def get_data(potential, train_split):
     trajs = np.load(f'dataset/{potential}.npy')
     if train_split == 1.0:
-        return torch.Tensor(trajs).to(device), None
+        np.random.shuffle(trajs)
+        test_trajs = np.load(f'dataset/{potential}_test.npy')
+        return torch.Tensor(trajs).to(device), torch.Tensor(test_trajs).to(device)
     else:
         test_split = 1 - train_split
         split_index = int(trajs.shape[0] * train_split)
@@ -198,15 +200,15 @@ def train_model(niters, training_trajs, dt, sample_length, batch_size, learning_
 def main():
     sample_length=20
     batch_size=800
-    learning_rate=0.025
     scheduling_factor=0.6
     scheduling_freq=2000
     nn_depth=2
     nn_width=50
-    niters = 20000
+    niters = 10000
+    train_sizes = [500, 1000, 2000, 5000, 10000, 20000]
     
     train_split = 1.0
-    potentials = ['wofe_quapp']
+    potentials = ['wofe_quapp']#['2d_shell', '10d_gaussian', 'wofe_quapp']
     num_models = 5
     for potential in potentials:
         if potential == '2d_shell':
@@ -214,16 +216,27 @@ def main():
         else:
             dt = 0.1
 
-        # for i in range(1, 1+num_models):
-        for i in [5]:
-            training_trajs, testing_trajs = get_data(potential, train_split)
-            model, loss_meter = train_model(niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width)
+        if potential == 'wofe_quapp':
+            learning_rate=0.025
+        else:
+            learning_rate=0.1
 
-            # save model
-            torch.save(model, f'results/{potential}/{i}_model.pt')
-            with open(f'results/{potential}/{i}_loss.txt', 'w') as f:
-                for loss in loss_meter.losses:
-                    f.write(f'{loss}\n')
+        for train_size in train_sizes:
+            for i in range(1, 1+num_models):
+                training_trajs, testing_trajs = get_data(potential, train_split)
+                training_trajs = training_trajs[:train_size,:,:]
+                
+                model, loss_meter = train_model(niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width)
+
+                if not os.path.exists(f'results/{potential}/train_size/{train_size}'):
+                    os.makedirs(f'results/{potential}/train_size/{train_size}')
+  
+
+                # save model
+                torch.save(model, f'results/{potential}/train_size/{train_size}/{i}_model.pt')
+                with open(f'results/{potential}/train_size/{train_size}/{i}_loss.txt', 'w') as f:
+                    for loss in loss_meter.losses:
+                        f.write(f'{loss}\n')
         
 
 if __name__ == '__main__':

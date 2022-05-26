@@ -194,12 +194,12 @@ def Neural_HMC(f,q0,num_samples,eps,steps,store=False):
 
 
 
-twice_dim = 20
-potential_function = GaussianXD
+twice_dim = 4
+potential_function = Wofe_Quapp
 num_samples = [100, 200, 500, 1000, 2000, 5000, 10000]
 traj_length = 10
 traj_step_size = 0.1
-potential = '10d_gaussian'#'wofe_quapp'
+potential = 'wofe_quapp'
 num_of_runs = 5 
 num_of_models = 5
 
@@ -209,7 +209,7 @@ def modelled_potential(q,p):
     return V, grad
 
 for model in range(1, num_of_models+1):
-    func = torch.load(f'results/{potential}/fully_trained/{model}_model.pt').to(device)
+    func = torch.load(f'results/{potential}/{model}_model.pt').to(device)
     for q in num_samples:
         for i in range(1, num_of_runs+1):
             init = np.random.randn(twice_dim//2)*2
