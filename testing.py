@@ -205,10 +205,10 @@ def main():
     nn_depth=2
     nn_width=50
     niters = 10000
-    train_sizes = [500, 1000, 2000, 5000, 10000, 20000]
+    train_sizes = [20000]
     
     train_split = 1.0
-    potentials = ['wofe_quapp']#['2d_shell', '10d_gaussian', 'wofe_quapp']
+    potentials = ['2d_shell']#['2d_shell', '10d_gaussian', 'wofe_quapp']
     num_models = 5
     for potential in potentials:
         if potential == '2d_shell':

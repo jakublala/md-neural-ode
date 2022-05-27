@@ -208,8 +208,8 @@ def modelled_potential(q,p):
     grad = 0
     return V, grad
 
-for model in range(1, num_of_models+1):
-    func = torch.load(f'results/{potential}/{model}_model.pt').to(device)
+for model in range(5, num_of_models+1):
+    func = torch.load(f'results/{potential}/fully_trained/{model}_model.pt').to(device)
     for q in num_samples:
         for i in range(1, num_of_runs+1):
             init = np.random.randn(twice_dim//2)*2
