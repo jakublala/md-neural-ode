@@ -10,8 +10,8 @@ import os
 import shutil
 import csv
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# device = 'cpu'
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = 'cpu'
 print(f'Using {device} device')
 
 class RunningAverageMeter(object):
