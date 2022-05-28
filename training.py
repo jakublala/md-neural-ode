@@ -219,7 +219,7 @@ def main():
 
         for i in range(1, 1+num_models):
             training_trajs, testing_trajs = get_data(potential, train_split)
-            model, loss_meter = train_model(potential, niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width)
+            model, loss_meter = train_model(potential,niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width)
 
             # save model
             if not os.path.exists(f'results/{potential}'):
