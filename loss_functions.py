@@ -230,7 +230,7 @@ def main():
     nn_width=50
     niters = 10
     dt = 0.01
-    train_split = 0.9
+    train_split = 1.0
     potential = '2d_shell'
     num_models = 5
     loss_funcs = ['all', 'vel', 'pos']  
@@ -246,9 +246,9 @@ def main():
                 for loss in loss_meter.losses:
                     f.write(f'{loss}\n')
 
-            test_loss = test_model(model, testing_trajs, dt)
-            with open(f'results/{potential}/{loss_func}_{i}_test_loss.txt', 'w') as f:
-                f.write(f'{test_loss.val}')
+            # test_loss = test_model(model, testing_trajs, dt)
+            # with open(f'results/{potential}/{loss_func}_{i}_test_loss.txt', 'w') as f:
+            #     f.write(f'{test_loss.val}')
         
 
 if __name__ == '__main__':

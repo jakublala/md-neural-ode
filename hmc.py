@@ -154,36 +154,36 @@ def hmc(func, q0, num_samples, eps, steps, store=False):
     return samples,stored_vals,energies,acceptance
 
 def run(potential, potential_fce):
-    num_samples = [5000]
-    init = np.random.randn(2)*2
-    traj_length = 100
+    num_samples = [100, 200, 500, 1000, 2000, 5000, 10000]
+    init = np.random.randn(10)*2
+    traj_length = 10
     if potential == '2d_shell':
         traj_step_size = 0.01
     else:
         traj_step_size = 0.1
-    num_of_runs = 1
+    num_of_runs = 25
 
     for q in num_samples:
         for i in range(1, num_of_runs+1):
             start = time.perf_counter()
             samps,trajs,energies,acceptance = hmc(potential_fce, init, q, traj_step_size, traj_length, store=True)
 
-            if not os.path.exists(f'results/{potential}/hmc/{q}'):
-                os.makedirs(f'results/{potential}/hmc/{q}')
+            if not os.path.exists(f'results/{potential}/hmc_2/{q}'):
+                os.makedirs(f'results/{potential}/hmc_2/{q}')
 
-            with open(f'results/{potential}/hmc/{q}/{i}_hmc_samps.npy', 'wb') as f:
+            with open(f'results/{potential}/hmc_2/{q}/{i}_hmc_samps.npy', 'wb') as f:
                 np.save(f, samps)
 
-            with open(f'results/{potential}/hmc/{q}/{i}_info.npy', 'wb') as f:
+            with open(f'results/{potential}/hmc_2/{q}/{i}_info.npy', 'wb') as f:
                 np.save(f, np.array([time.perf_counter() - start, acceptance]))
 
             # just save the last one to get trajectories
-            if i == (num_of_runs) and q == num_samples[-1]:
-                with open(f'dataset/{potential}_test.npy', 'wb') as f:
-                    np.save(f, trajs)
+            # if i == (num_of_runs) and q == num_samples[-1]:
+            #     with open(f'dataset/{potential}_test.npy', 'wb') as f:
+            #         np.save(f, trajs)
 
 if __name__ == '__main__':
-    for potential in ['wofe_quapp','10d_gaussian', '2d_shell']:
+    for potential in ['10d_gaussian']:#['wofe_quapp','10d_gaussian', '2d_shell']:
         if potential == 'wofe_quapp':
             potential_fce = Wofe_Quapp
         elif potential == '10d_gaussian':
