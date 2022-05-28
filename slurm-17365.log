@@ -1,3 +1,0 @@
-/home/jakub/md-neural-ode/hmc_neuralODE.py:163: RuntimeWarning: overflow encountered in exp
-  acceptance = np.exp(H_o - H_f)
-slurmstepd-softnanolab-HP-Z8-G4-Workstation: error: *** JOB 17365 ON softnanolab-HP-Z8-G4-Workstation CANCELLED AT 2022-05-27T08:48:13 ***

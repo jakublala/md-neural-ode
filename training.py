@@ -142,10 +142,13 @@ def get_data(potential, train_split):
         testing_trajs = torch.Tensor(trajs[split_index:, :, :]).to(device)
         return training_trajs, testing_trajs 
 
-def train_model(niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width):    
+def train_model(potential, niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width):    
     loss_meter = RunningAverageMeter()
     dim = training_trajs.size()[2] // 2
     func = ODEFunc(dim, nn_width, nn_depth).to(device)
+    if potential == 'spring':
+        m = 1.0
+        func.mass = m*m/(m+m)
     # func = torch.load('results/2d_shell/model.pt')
     optimizer = torch.optim.Adam(func.parameters(), lr=learning_rate)
     
@@ -196,17 +199,17 @@ def train_model(niters, training_trajs, dt, sample_length, batch_size, learning_
     return func, loss_meter
 
 def main():
-    sample_length=20
+    sample_length=40
     batch_size=800
-    learning_rate=0.025
-    scheduling_factor=0.6
-    scheduling_freq=2000
-    nn_depth=2
+    learning_rate=0.02
+    scheduling_factor=0.9
+    scheduling_freq=1000
+    nn_depth=1
     nn_width=50
-    niters = 20000
+    niters = 5000
     
     train_split = 1.0
-    potentials = ['wofe_quapp']
+    potentials = ['spring']
     num_models = 5
     for potential in potentials:
         if potential == '2d_shell':
@@ -214,12 +217,14 @@ def main():
         else:
             dt = 0.1
 
-        # for i in range(1, 1+num_models):
-        for i in [5]:
+        for i in range(1, 1+num_models):
             training_trajs, testing_trajs = get_data(potential, train_split)
-            model, loss_meter = train_model(niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width)
+            model, loss_meter = train_model(potential, niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width)
 
             # save model
+            if not os.path.exists(f'results/{potential}'):
+                os.makedirs(f'results/{potential}')
+
             torch.save(model, f'results/{potential}/{i}_model.pt')
             with open(f'results/{potential}/{i}_loss.txt', 'w') as f:
                 for loss in loss_meter.losses:
