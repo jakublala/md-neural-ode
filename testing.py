@@ -10,8 +10,8 @@ import os
 import shutil
 import csv
 
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = 'cpu'
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+# device = 'cpu'
 print(f'Using {device} device')
 
 class RunningAverageMeter(object):
@@ -131,7 +131,9 @@ class ODEFunc(nn.Module):
 def get_data(potential, train_split):
     trajs = np.load(f'dataset/{potential}.npy')
     if train_split == 1.0:
-        return torch.Tensor(trajs).to(device), None
+        np.random.shuffle(trajs)
+        test_trajs = np.load(f'dataset/{potential}_test.npy')
+        return torch.Tensor(trajs).to(device), torch.Tensor(test_trajs).to(device)
     else:
         test_split = 1 - train_split
         split_index = int(trajs.shape[0] * train_split)
@@ -142,13 +144,10 @@ def get_data(potential, train_split):
         testing_trajs = torch.Tensor(trajs[split_index:, :, :]).to(device)
         return training_trajs, testing_trajs 
 
-def train_model(potential, niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width):    
+def train_model(niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width):    
     loss_meter = RunningAverageMeter()
     dim = training_trajs.size()[2] // 2
     func = ODEFunc(dim, nn_width, nn_depth).to(device)
-    if potential == 'spring':
-        m = 1.0
-        func.mass = m*m/(m+m)
     # func = torch.load('results/2d_shell/model.pt')
     optimizer = torch.optim.Adam(func.parameters(), lr=learning_rate)
     
@@ -199,17 +198,17 @@ def train_model(potential, niters, training_trajs, dt, sample_length, batch_size
     return func, loss_meter
 
 def main():
-    sample_length=40
+    sample_length=20
     batch_size=800
-    learning_rate=0.02
-    scheduling_factor=0.9
-    scheduling_freq=1000
-    nn_depth=1
+    scheduling_factor=0.6
+    scheduling_freq=2000
+    nn_depth=2
     nn_width=50
-    niters = 5000
+    niters = 10000
+    train_sizes = [200]
     
     train_split = 1.0
-    potentials = ['spring']
+    potentials = ['10d_gaussian']#['2d_shell', '10d_gaussian', 'wofe_quapp']
     num_models = 5
     for potential in potentials:
         if potential == '2d_shell':
@@ -217,18 +216,27 @@ def main():
         else:
             dt = 0.1
 
-        for i in range(1, 1+num_models):
-            training_trajs, testing_trajs = get_data(potential, train_split)
-            model, loss_meter = train_model(potential,niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width)
+        if potential == 'wofe_quapp':
+            learning_rate=0.025
+        else:
+            learning_rate=0.1
 
-            # save model
-            if not os.path.exists(f'results/{potential}'):
-                os.makedirs(f'results/{potential}')
+        for train_size in train_sizes:
+            for i in range(1, 1+num_models):
+                training_trajs, testing_trajs = get_data(potential, train_split)
+                training_trajs = training_trajs[:train_size,:,:]
+                
+                model, loss_meter = train_model(niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width)
 
-            torch.save(model, f'results/{potential}/{i}_model.pt')
-            with open(f'results/{potential}/{i}_loss.txt', 'w') as f:
-                for loss in loss_meter.losses:
-                    f.write(f'{loss}\n')
+                if not os.path.exists(f'results/{potential}/train_size/{train_size}'):
+                    os.makedirs(f'results/{potential}/train_size/{train_size}')
+  
+
+                # save model
+                torch.save(model, f'results/{potential}/train_size/{train_size}/{i}_model.pt')
+                with open(f'results/{potential}/train_size/{train_size}/{i}_loss.txt', 'w') as f:
+                    for loss in loss_meter.losses:
+                        f.write(f'{loss}\n')
         
 
 if __name__ == '__main__':

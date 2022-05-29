@@ -3,8 +3,8 @@
 #SBATCH --time 48:00:00
 #SBATCH -o slurm-%j.log
 #SBATCH --cpus-per-task=8
-#SBATCH --job-name=hmc
+#SBATCH --job-name=triatomic
 
 module load anaconda3/personal
 
-python hmc.py > hmc.out
+python triatomic.py > triatomic.out
