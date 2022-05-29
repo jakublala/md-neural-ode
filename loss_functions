@@ -1,0 +1,16 @@
+#PBS -lselect=1:ncpus=16:mem=32gb:ngpus=1:gpu_type=RTX6000
+#PBS -lwalltime=24:0:0
+#PBS -N loss_functions
+
+INPUT_FILE=loss_functions.py
+OUTPUT_FILE=loss_functions.out
+
+module load anaconda3/personal
+source activate neuralode
+
+cp -r $PBS_O_WORKDIR/* $TMPDIR
+
+python $TMPDIR/$INPUT_FILE > $TMPDIR/$OUTPUT_FILE
+
+cp -r $TMPDIR/results/* $PBS_O_WORKDIR/results
+cp -r $TMPDIR/$OUTPUT_FILE $PBS_O_WORKDIR
