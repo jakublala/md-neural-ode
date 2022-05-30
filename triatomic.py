@@ -168,7 +168,7 @@ dt = 0.1 # how is dt defined?
 # max_value = 1000
 # traj_lengths = [10*i for i in range(1, 1+(1000 // 10))]
 
-num_samples = 1
+num_samples = 100
 # data = dict()
 # for t in traj_lengths:
 #     data[t] = torch.zeros(3, 2).to(device)
@@ -177,10 +177,12 @@ data_model = []
 data_explicit = []
 
 for m in range(1, num_models+1):
+    print(m)
     func = torch.load(f'results/spring/{m}_model.pt').to(device)
     func_system = ODEFunc_NoEndFixed(func)
     
     for n in range(num_samples):
+        print(n)
         state = torch.rand((3, 2)).to(device)
         state[:, 0] = 0
         state[0, 1] -= 1
