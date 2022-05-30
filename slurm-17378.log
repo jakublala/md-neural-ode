@@ -1,6 +1,0 @@
-Traceback (most recent call last):
-  File "/home/jakub/md-neural-ode/training.py", line 235, in <module>
-    main()
-  File "/home/jakub/md-neural-ode/training.py", line 222, in main
-    model, loss_meter = train_model(niters, training_trajs, dt, sample_length, batch_size, learning_rate, scheduling_factor, scheduling_freq, nn_depth, nn_width)
-TypeError: train_model() missing 1 required positional argument: 'nn_width'

@@ -1,6 +1,0 @@
-Traceback (most recent call last):
-  File "/home/jakub/md-neural-ode/triatomic.py", line 208, in <module>
-    state = func_system.integrate_verlet(state, dt)
-  File "/home/jakub/md-neural-ode/triatomic.py", line 95, in integrate_verlet
-    assert q[1] > q[0], 'the two atoms collided'
-AssertionError: the two atoms collided

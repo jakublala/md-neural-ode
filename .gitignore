@@ -4,3 +4,4 @@ __pychache__/
 diffmd/__pychache__/
 dataset/
 *.out
+slurm*
